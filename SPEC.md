@@ -1,0 +1,139 @@
+# SPEC — ai-dev-grow
+
+> AI 驱动的开发者学习与工程成长系统。
+
+## 项目目标
+
+把真实开发任务作为成长的燃料，形成一条可验证的最小闭环：
+
+```
+真实开发任务
+  → /task 分析所需 Skill
+  → 查询 Skill Graph
+  → 找出能力 Gap
+  → /assess 验证 Unknown Skill
+  → 记录直接 Evidence
+  → 更新 Skill Graph
+  → 再次 /task
+```
+
+## 当前版本：V0
+
+V0 验证 `/task → /assess → Evidence → Graph → /task` 最小闭环：
+
+- `/task` 只分析并报告 Gap，不写文件。
+- `/assess` 只记录具体 Skill 的直接 Evidence，并更新该 Skill 的 Evidence Mastery。
+- Derived Mastery 仅定义数据模型，不实现聚合算法。
+- `/scan`、`/learn` 等其他命令仍为空 stub。
+
+## Skill Graph 模型
+
+`skills/graph.yaml` 是唯一权威数据源，由 Domain 和 Skill 两类实体组成。
+
+### Domain
+
+Domain 只负责分类：
+
+- 字段为 `id`、`name`。
+- 不维护 Mastery 或 Evidence。
+- V0 初始 Domain：Frontend、Backend、AI Engineering、System Design。
+
+### Skill
+
+Skill 是可以被任务引用、评估和积累 Evidence 的能力节点：
+
+- `domain_id` 指向一个 Domain。
+- `parent_id` 为 `null` 或指向同一 Domain 内另一个 Skill。
+- 通过 `parent_id` 支持任意深度层级，不限制为固定的 Domain → Skill → Sub-skill 三级。
+- 任意 Skill 都可以同时拥有子 Skill 和自己的直接 Evidence；非叶子节点不是纯目录。
+- 具体 Skill 随真实任务动态增长。
+
+采用扁平 Skill 列表和父引用，而不是递归 YAML，以保持 diff 可读并方便稳定引用。
+
+## Mastery 模型
+
+### 等级
+
+| 值 | 含义 |
+|---|---|
+| `null` | Unknown：尚无可信等级 |
+| `L0` | 已验证为基本不了解 |
+| `L1` | Understand：理解，能读懂 |
+| `L2` | Apply：能应用，可查资料交付 |
+| `L3` | Independent：可独立交付 |
+
+Unknown 不等于 L0。L0 必须有直接 Evidence；不能因为缺少证据就推断为 L0。
+
+### 来源
+
+每个 Skill 使用以下结构：
+
+```yaml
+mastery:
+  level: null
+  source: null
+  confidence: null
+evidence: []
+```
+
+`mastery.source` 的合法值：
+
+| 来源 | 含义 | V0 行为 |
+|---|---|---|
+| `null` | Unknown，没有可信 Mastery | `/task` 判为 Assess |
+| `evidence` | 当前等级由该 Skill 的直接 Evidence 支持 | `/assess` 可以写入 |
+| `derived` | 当前等级由子 Skill 聚合推导 | 只保留模型，不计算、不写入 |
+
+一致性约束：
+
+- Unknown 时 `level`、`source`、`confidence` 必须全部为 `null`。
+- `source: evidence` 时，`level` 和 `confidence` 必须有值，`evidence` 至少有一项。
+- `source: derived` 时，`level` 和 `confidence` 必须有值；V0 不定义其计算规则。
+- `confidence` 取值范围为 0.0–1.0，仅表示对当前等级判断的确信度。
+- Evidence 是 `experiences/` 文件引用，格式见 `experiences/README.md`。
+
+## V0 Gap 判定规则（三分类）
+
+- 交付场景默认 `required_level = L2`。
+- 每个任务所需 Skill 判定为以下三类之一：
+
+| 状态 | 条件 | 动作 |
+|---|---|---|
+| `unverified` | Graph 中不存在，或 `mastery.level == null` | Assess |
+| `satisfied` | `mastery.level >= required_level` | Skip |
+| `gap` | `mastery.level < required_level` | Learn |
+
+- `evidence` 和已有合法的 `derived` Mastery 使用相同等级比较规则。
+- Graph 中不存在的新 Skill 是 candidate，默认为 Unknown；`/task` 不写回 Graph。
+- candidate 记录 `domain_id`，并在存在合适父 Skill 时记录 `parent_id`。
+
+## `/assess` 最小写入规则
+
+- 评估必须针对一个具体 Skill，并产生可复核的直接 Evidence。
+- candidate 在获得有效 Evidence 后才加入 Graph。
+- `/assess` 只写 `source: evidence`，不更新祖先节点，不产生 Derived Mastery。
+- 证据不足时保持 Unknown，不创建 Evidence，也不更新 Graph。
+
+## 未来方向（本期不实现）
+
+- Derived Mastery 聚合算法
+- 全局跨项目 Skill Graph
+- Pattern Library、Learning Backlog
+- Reference Repo、MindWiki / CodeGraph CodeContextProvider
+- `/scan`、`/learn`
+- 技能树可视化
+
+## 明确不做
+
+- Web UI
+- Database、Vector DB、Graph DB
+- FSRS、Multi-Agent
+- 复杂 Mastery Score、完整知识图谱
+- 一次实现所有 Commands
+
+## 工程原则
+
+- 数据优先使用 Markdown / YAML / JSON
+- Git Friendly
+- 简单优先，不提前抽象，不为未来需求提前实现基础设施
+- 这是一个 Learning Project

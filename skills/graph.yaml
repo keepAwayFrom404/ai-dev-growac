@@ -1,0 +1,210 @@
+# Skill Graph — 唯一权威数据源
+# Domain 仅负责分类，不维护 mastery 或 evidence。
+# Skill 通过 parent_id 形成任意深度层级；parent_id: null 表示 Domain 下的根 Skill。
+# mastery.level: null(Unknown) | L0 | L1 | L2 | L3
+# mastery.source: null | evidence | derived
+#   - Unknown: level/source/confidence 必须全部为 null
+#   - evidence: 当前 level 由该 Skill 的直接证据支持，evidence 至少包含一项
+#   - derived: 当前 level 由子 Skill 推导；V0 仅保留模型，不实现计算或写入
+# evidence: 引用 experiences/ 下的 Evidence 文件；父 Skill 也可以拥有直接 Evidence
+version: 2
+updated: "2026-10-08"
+
+domains:
+  - id: frontend
+    name: Frontend
+  - id: backend
+    name: Backend
+  - id: ai-engineering
+    name: AI Engineering
+  - id: system-design
+    name: System Design
+
+skills:
+  # ---- Frontend ----
+  - id: frontend.javascript
+    name: JavaScript
+    domain_id: frontend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: frontend.typescript
+    name: TypeScript
+    domain_id: frontend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: frontend.react
+    name: React
+    domain_id: frontend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: frontend.browser
+    name: Browser
+    domain_id: frontend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: frontend.network
+    name: Network
+    domain_id: frontend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: frontend.engineering
+    name: Engineering
+    domain_id: frontend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+
+  # ---- Backend ----
+  - id: backend.java
+    name: Java
+    domain_id: backend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: backend.spring
+    name: Spring
+    domain_id: backend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: backend.database
+    name: Database
+    domain_id: backend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: backend.cache
+    name: Cache
+    domain_id: backend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: backend.messaging
+    name: Messaging
+    domain_id: backend
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+
+  # ---- AI Engineering ----
+  - id: ai.llm
+    name: LLM
+    domain_id: ai-engineering
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: ai.context-engineering
+    name: Context Engineering
+    domain_id: ai-engineering
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: ai.agent
+    name: Agent
+    domain_id: ai-engineering
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: ai.rag
+    name: RAG
+    domain_id: ai-engineering
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: ai.evaluation
+    name: Evaluation
+    domain_id: ai-engineering
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+  - id: ai.observability
+    name: Observability
+    domain_id: ai-engineering
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
+
+  # ---- System Design ----
+  - id: system-design
+    name: System Design
+    domain_id: system-design
+    parent_id: null
+    mastery:
+      level: null
+      source: null
+      confidence: null
+    evidence: []
+    notes: null
