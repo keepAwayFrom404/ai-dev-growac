@@ -1,11 +1,13 @@
 # /task — Task → Skill Gap
 
-分析一个真实开发任务所需的 Skill，对照 Skill Graph 找出能力 Gap。
-**V0 止步于 Gap 报告，不进入开发、不记录 Evidence、不更新 Graph。**
+分析当前已初始化项目中的真实开发任务，对照中央 Skill Graph 找出能力 Gap。
+**V0.1 止步于 Gap 报告，不进入开发、不记录 Evidence、不更新 Graph。**
 
 ## 输入
 
 用户提供真实开发任务描述：`/task <任务描述>`
+
+执行前必须通过 `ai-dev-grow resolve` 取得 `project_id`、`graph_path` 和中央命令路径。项目未初始化时停止，并提示运行 `ai-dev-grow init`。
 
 ## 工作流
 
@@ -27,6 +29,7 @@ Task → Task Understanding → Skill Discovery → Skill Resolution
 5. **Current Mastery**：读取 `mastery.level`、`mastery.source` 与 `mastery.confidence`；candidate 的当前 Mastery 为 Unknown。
 6. **Gap Analysis**：按三分类判定（见下）。
 7. **出报告**：按下方模板**仅打印到对话，不落盘**。
+   - 报告注明当前 `project_id`，但不创建项目级 Mastery。
 
 ## Gap 判定（三分类）
 
@@ -42,6 +45,8 @@ Task → Task Understanding → Skill Discovery → Skill Resolution
 
 ```markdown
 ## Skill Gap 分析：<任务标题>
+
+Project：<project_id>
 
 ### 任务理解
 <1–3 句>
@@ -71,3 +76,4 @@ Task → Task Understanding → Skill Discovery → Skill Resolution
 - 不创建任务文件、不写 Evidence。
 - candidate 仅存在于本次报告；只有后续 `/assess` 才能在取得 Evidence 后把它写入 Graph。
 - 不根据子 Skill 临时计算或回写父 Skill 的 Derived Mastery。
+- 不在业务项目中复制 `skills/graph.yaml` 或创建项目级 Mastery。

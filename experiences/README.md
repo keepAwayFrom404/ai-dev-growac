@@ -16,6 +16,7 @@ YYYY-MM-DD-<skill-slug>-<short-id>.md
 ---
 id: evidence-<stable-id>
 skill_id: <skills/graph.yaml 中的 Skill id>
+project_id: <.ai-dev-grow/project.yaml 中的 project_id>
 assessed_at: YYYY-MM-DD
 method: <assessment | delivery | review>
 level: <L0 | L1 | L2 | L3>
@@ -40,7 +41,9 @@ confidence: <0.0–1.0>
 ## 约束
 
 - 一条 Evidence 只直接支持一个 `skill_id`。
+- 每条 Evidence 必须记录来源 `project_id`，用于追溯跨项目实践；它不创建项目级 Mastery。
 - `level` 必须来自实际评估结果；证据不足时不创建文件，Skill 保持 Unknown。
 - Evidence 可以支持非叶子 Skill；该 Skill 同时拥有子 Skill 不影响其直接 Evidence。
 - Evidence 不自动提升父 Skill、子 Skill或兄弟 Skill。
 - V0 不使用 Evidence 聚合 Derived Mastery。
+- 不记录业务项目的机器绝对路径、凭证或其他本地敏感配置。

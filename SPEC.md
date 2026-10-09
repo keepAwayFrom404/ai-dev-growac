@@ -17,14 +17,49 @@
   → 再次 /task
 ```
 
-## 当前版本：V0
+## 当前版本：V0.1
 
-V0 验证 `/task → /assess → Evidence → Graph → /task` 最小闭环：
+V0.1 验证跨项目的 `init → /task → /assess → Evidence → Graph → /task` 最小闭环：
 
+- Codex 与 OpenCode 通过同一 Agent Skill 使用系统。
+- 每个业务 Git 项目通过 `ai-dev-grow init` 创建稳定 `project_id`。
 - `/task` 只分析并报告 Gap，不写文件。
-- `/assess` 只记录具体 Skill 的直接 Evidence，并更新该 Skill 的 Evidence Mastery。
+- `/assess` 把带 `project_id` 的直接 Evidence 和 Skill Mastery 写回中央 ai-dev-grow 仓库。
 - Derived Mastery 仅定义数据模型，不实现聚合算法。
 - `/scan`、`/learn` 等其他命令仍为空 stub。
+
+## 跨项目架构
+
+`~/ai-dev-grow` 保存个人全局唯一的 Graph、Evidence、命令规范和共享 Skill。安装命令把 Skill 与 CLI 链接到用户级发现目录：
+
+```text
+~/.agents/skills/ai-dev-grow -> <ai-dev-grow>/.agents/skills/ai-dev-grow
+~/.local/bin/ai-dev-grow     -> <ai-dev-grow>/bin/ai-dev-grow
+~/.config/opencode/commands/task.md   -> <ai-dev-grow>/.opencode/commands/task.md
+~/.config/opencode/commands/assess.md -> <ai-dev-grow>/.opencode/commands/assess.md
+```
+
+业务项目只保存：
+
+```yaml
+version: 1
+project_id: "project-a"
+```
+
+约束：
+
+- 不在业务项目复制 Skill Graph、Evidence 或 Skill 实现。
+- 不自动修改业务项目的 `AGENTS.md`、Codex 配置或 OpenCode 配置。
+- `project_id` 只标识 Evidence 来源，不切分个人 Mastery。
+- 默认从 Git 仓库目录名生成 ID；同名项目使用 `ai-dev-grow init --id <id>` 显式区分。
+- V0.1 只支持串行评估写入，不实现并发锁、服务端或数据库。
+
+### 客户端调用
+
+两端均从 `.agents/skills` 发现同一 `SKILL.md`，再通过 `ai-dev-grow resolve` 获取中央数据路径。
+
+- Codex 优先通过自然语言自动触发 Skill，必要时使用 `$ai-dev-grow` 显式调用。Codex 不提供自定义裸 `/task`。
+- OpenCode 通过全局薄适配命令提供 `/task` 和 `/assess`；适配层只转发参数并要求加载共享 Skill，不复制工作流规则。
 
 ## Skill Graph 模型
 
@@ -91,6 +126,7 @@ evidence: []
 - `source: derived` 时，`level` 和 `confidence` 必须有值；V0 不定义其计算规则。
 - `confidence` 取值范围为 0.0–1.0，仅表示对当前等级判断的确信度。
 - Evidence 是 `experiences/` 文件引用，格式见 `experiences/README.md`。
+- 每条 Evidence 包含来源 `project_id`，但不保存业务项目的机器绝对路径。
 
 ## V0 Gap 判定规则（三分类）
 
@@ -113,15 +149,16 @@ evidence: []
 - candidate 在获得有效 Evidence 后才加入 Graph。
 - `/assess` 只写 `source: evidence`，不更新祖先节点，不产生 Derived Mastery。
 - 证据不足时保持 Unknown，不创建 Evidence，也不更新 Graph。
+- Graph 和 Evidence 始终写入中央 ai-dev-grow 仓库，业务项目只保留初始化标记。
 
 ## 未来方向（本期不实现）
 
 - Derived Mastery 聚合算法
-- 全局跨项目 Skill Graph
 - Pattern Library、Learning Backlog
 - Reference Repo、MindWiki / CodeGraph CodeContextProvider
 - `/scan`、`/learn`
 - 技能树可视化
+- 多用户同步、云服务与并发写入
 
 ## 明确不做
 

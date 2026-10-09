@@ -7,7 +7,7 @@
 
 ## V0 边界（硬约束）
 
-当前只实现最小闭环：`/task` → Skill Gap → `/assess` → Evidence → Skill Graph → `/task`。
+当前实现跨项目最小闭环：项目 `init` → `/task` → Skill Gap → `/assess` → 中央 Evidence → 中央 Skill Graph → 其他项目 `/task`。
 
 **明确禁止实现**（本期一律不做）：
 
@@ -18,6 +18,15 @@
 - 为未来需求提前实现基础设施
 
 Derived Mastery 只保留数据模型，V0 不实现聚合算法或自动写入。
+
+## 跨项目边界
+
+- `skills/graph.yaml` 与 `experiences/` 始终保存在 ai-dev-grow 中，是个人全局唯一数据源。
+- 业务项目只允许创建 `.ai-dev-grow/project.yaml`，不得复制 Graph 或保存项目级 Mastery。
+- Codex 与 OpenCode 共用 `.agents/skills/ai-dev-grow/SKILL.md`。
+- OpenCode 的 `.opencode/commands/task.md` 与 `assess.md` 只能作为共享 Skill 的薄适配层，不得复制业务规则。
+- 初始化脚本不得覆盖目标项目现有 `AGENTS.md`、Agent 配置或同名文件。
+- V0.1 只支持串行写入中央 Graph，不实现并发服务或锁基础设施。
 
 ## 工作流铁律
 
@@ -46,6 +55,9 @@ Derived Mastery 只保留数据模型，V0 不实现聚合算法或自动写入�
 | `commands/task.md` | `/task` 指令：Task → Skill Gap |
 | `commands/assess.md` | `/assess` 指令：直接 Evidence → Skill Graph |
 | `experiences/` | 可复核的直接 Evidence |
+| `.agents/skills/ai-dev-grow/SKILL.md` | Codex/OpenCode 共用入口 |
+| `bin/ai-dev-grow` | 用户安装、项目初始化与环境诊断 |
+| `.opencode/commands/` | OpenCode `/task`、`/assess` 薄适配层 |
 | `learning/backlog.yaml` | Learning Backlog（未来） |
 | `patterns/` | Pattern Library（未来） |
 | `references/` | Reference Repo（未来） |
@@ -57,3 +69,4 @@ Derived Mastery 只保留数据模型，V0 不实现聚合算法或自动写入�
 - 改命令流程 → 更新 commands 文件与命令列表
 - 改 Gap 规则 → 更新 SPEC.md 的判定规则段
 - 改 Evidence 结构 → 更新 experiences/README.md 与 SPEC.md
+- 改安装或初始化行为 → 更新 README.md、SPEC.md 与对应测试

@@ -1,6 +1,6 @@
 # /assess — Evidence → Skill Graph
 
-评估一个具体 Skill，记录可复核的直接 Evidence，并把该 Skill 的直接 Mastery 更新到 Skill Graph。
+评估当前已初始化项目中的一个具体 Skill，把可复核的直接 Evidence 和 Mastery 写入中央 ai-dev-grow 仓库。
 
 ## 输入
 
@@ -10,6 +10,7 @@
 
 - `skill-id` 可以是 Graph 中已有 Skill，也可以是 `/task` 发现的 candidate。
 - 信息不足以完成有效评估时，先向用户补充提问，不得猜测等级或伪造 Evidence。
+- 执行前通过 `ai-dev-grow resolve` 取得 `project_id`、中央 Graph 和 Evidence 路径；项目未初始化时停止。
 
 ## 工作流
 
@@ -27,12 +28,14 @@ Skill Resolution → Assessment → Evidence Record → Graph Update → Result
 3. **Evidence Record**
    - 按 `experiences/README.md` 创建一条可复核的 Evidence 文件。
    - Evidence 必须说明评估方法、观察结果、等级理由和局限。
+   - Evidence 必须记录当前项目的 `project_id`，但不得记录机器绝对路径。
 4. **Graph Update**
    - candidate 先作为 Skill 加入 `skills/graph.yaml`。
    - 更新目标 Skill 的 `mastery.level`、`mastery.source: evidence`、`mastery.confidence` 和 `evidence` 引用。
    - 保留该 Skill 之前仍有效的 Evidence 引用。
    - 不修改 Domain Mastery，因为 Domain 没有 Mastery。
    - 不更新父 Skill，不计算或写入 `source: derived`。
+   - Graph 和 Evidence 都写入中央 ai-dev-grow 仓库；业务项目只保留 `.ai-dev-grow/project.yaml`。
 5. **Result**
    - 报告 Evidence 路径、Graph 变更和仍然存在的局限。
    - 提示可以重新运行 `/task`，让最新直接 Mastery 参与 Gap 判定。
@@ -61,3 +64,4 @@ evidence:
 - 不实现自动出题系统、复杂评分模型或 Derived Mastery 聚合。
 - 不修改 `/learn`、Learning Backlog 或其他未来模块。
 - 没有足够证据时宁可保持 Unknown，不把 Unknown 写成 L0。
+- V0.1 不处理并发评估；多个项目的 `/assess` 必须串行写入中央 Graph。
