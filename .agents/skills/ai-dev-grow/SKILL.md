@@ -22,8 +22,10 @@ When the user asks for task analysis or a Skill Gap:
 1. Read `task_command_path` and `graph_path` returned by `resolve`.
 2. Follow the task command exactly.
 3. Treat `project_id` as task provenance only; Mastery remains global.
-4. Present the user's choices for each Gap. Learning is optional and skipping it must not block development.
-5. Do not write Evidence or modify either repository.
+4. Show only 1–3 decision-relevant Skills. For every Gap or unverified Skill, explain its meaning, use in this task, status basis, delivery risk, and recommended action.
+5. Use a specific Skill ID. Never replace the report with a vague statement such as "system design capability is unknown."
+6. Present a reasoned task-level recommendation and the user's choices. Learning is optional and skipping it must not block development.
+7. Do not write Evidence or modify either repository.
 
 ## Learn mode
 
@@ -51,10 +53,11 @@ When the user asks to assess a Skill:
 When the initialized project's `AGENTS.md` requires this workflow for a non-trivial development task, bug fix, or refactor:
 
 1. Run Task mode before coding.
-2. For a Gap, offer Learn or direct development. For an unverified Skill, offer Assess, Learn without assuming a level, or direct development. Respect the user's choice.
-3. Continue the normal project development workflow after that choice.
-4. After implementation and verification, summarize Evidence candidates supported by the delivery.
-5. Run Assess mode only after the user confirms the proposed assessment write.
+2. Before asking for a choice, show the concrete Skill decision information required by Task mode. If no concrete Skill can be tied to the task, do not offer learning for it.
+3. For a Gap, offer Learn or direct development. For an unverified Skill, offer Assess, Learn without assuming a level, or direct development. Respect the user's choice.
+4. Continue the normal project development workflow after that choice.
+5. After implementation and verification, summarize Evidence candidates supported by the delivery.
+6. Run Assess mode only after the user confirms the proposed assessment write.
 
 Do not trigger this lifecycle for read-only explanation, trivial text or formatting changes, Git status queries, or when the user explicitly opts out.
 

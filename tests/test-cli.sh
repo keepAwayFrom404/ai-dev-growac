@@ -43,6 +43,8 @@ grep -q 'version: 1' "$PROJECT_A/.ai-dev-grow/project.yaml"
 grep -q '^# Existing project rules$' "$PROJECT_A/AGENTS.md"
 grep -q '^<!-- AI_DEV_GROW_START -->$' "$PROJECT_A/AGENTS.md"
 grep -q '^<!-- AI_DEV_GROW_END -->$' "$PROJECT_A/AGENTS.md"
+grep -q '能力含义、本任务用途、状态依据、不处理的风险和推荐动作' "$PROJECT_A/AGENTS.md"
+grep -q '不得只说“相关能力未知”' "$PROJECT_A/AGENTS.md"
 rules_before="$(cksum "$PROJECT_A/AGENTS.md")"
 HOME="$TEST_HOME" "$CLI" init "$PROJECT_A" >/dev/null
 rules_after="$(cksum "$PROJECT_A/AGENTS.md")"
