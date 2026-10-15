@@ -7,14 +7,14 @@
 
 ## V0 边界（硬约束）
 
-当前实现跨项目最小闭环：项目 `init` → `/task` → Skill Gap → `/assess` → 中央 Evidence → 中央 Skill Graph → 其他项目 `/task`。
+当前实现跨项目最小闭环：项目 `init` → `/task` → Skill Gap → 用户可选 `/learn` → 开发与验证 → `/assess` → 中央 Evidence → 中央 Skill Graph → 其他项目 `/task`。
 
 **明确禁止实现**（本期一律不做）：
 
 - Web UI、Database、Vector DB、Graph DB
 - FSRS、Multi-Agent
 - 复杂 Mastery Score、完整知识图谱
-- 一次实现所有 Commands（`/scan`、`/learn` 保持空 stub；`/assess` 仅负责直接 Evidence 写入）
+- 一次实现所有 Commands（`/scan` 保持空 stub；`/learn` 仅实现面向当前任务的可选即时学习；`/assess` 仅负责直接 Evidence 写入）
 - 为未来需求提前实现基础设施
 
 Derived Mastery 只保留数据模型，V0 不实现聚合算法或自动写入。
@@ -22,11 +22,11 @@ Derived Mastery 只保留数据模型，V0 不实现聚合算法或自动写入�
 ## 跨项目边界
 
 - `skills/graph.yaml` 与 `experiences/` 始终保存在 ai-dev-grow 中，是个人全局唯一数据源。
-- 业务项目只允许创建 `.ai-dev-grow/project.yaml`，不得复制 Graph 或保存项目级 Mastery。
+- 业务项目只保存 `.ai-dev-grow/project.yaml` 和 `AGENTS.md` 中的受管工作流区块，不得复制 Graph 或保存项目级 Mastery。
 - Codex 与 OpenCode 共用 `.agents/skills/ai-dev-grow/SKILL.md`。
-- OpenCode 的 `.opencode/commands/task.md` 与 `assess.md` 只能作为共享 Skill 的薄适配层，不得复制业务规则。
-- 初始化脚本不得覆盖目标项目现有 `AGENTS.md`、Agent 配置或同名文件。
-- V0.1 只支持串行写入中央 Graph，不实现并发服务或锁基础设施。
+- OpenCode 的 `.opencode/commands/task.md`、`learn.md` 与 `assess.md` 只能作为共享 Skill 的薄适配层，不得复制业务规则。
+- 初始化脚本只能追加或更新带标记的 ai-dev-grow 受管区块，不得覆盖目标项目 `AGENTS.md` 的现有规则或修改 Agent 主配置。
+- V0.2 只支持串行写入中央 Graph，不实现并发服务或锁基础设施。
 
 ## 工作流铁律
 
@@ -54,10 +54,11 @@ Derived Mastery 只保留数据模型，V0 不实现聚合算法或自动写入�
 | `skills/graph.yaml` | Skill Graph，唯一权威数据源 |
 | `commands/task.md` | `/task` 指令：Task → Skill Gap |
 | `commands/assess.md` | `/assess` 指令：直接 Evidence → Skill Graph |
+| `commands/learn.md` | `/learn` 指令：可选即时学习 → 返回开发 |
 | `experiences/` | 可复核的直接 Evidence |
 | `.agents/skills/ai-dev-grow/SKILL.md` | Codex/OpenCode 共用入口 |
 | `bin/ai-dev-grow` | 用户安装、项目初始化与环境诊断 |
-| `.opencode/commands/` | OpenCode `/task`、`/assess` 薄适配层 |
+| `.opencode/commands/` | OpenCode `/task`、`/learn`、`/assess` 薄适配层 |
 | `learning/backlog.yaml` | Learning Backlog（未来） |
 | `patterns/` | Pattern Library（未来） |
 | `references/` | Reference Repo（未来） |

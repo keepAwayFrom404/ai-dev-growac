@@ -11,22 +11,27 @@
   → /task 分析所需 Skill
   → 查询 Skill Graph
   → 找出能力 Gap
+  → 用户选择 /learn 或直接开发
+  → 开发与验证
+  → 提出 Evidence 候选
   → /assess 验证 Unknown Skill
   → 记录直接 Evidence
   → 更新 Skill Graph
   → 再次 /task
 ```
 
-## 当前版本：V0.1
+## 当前版本：V0.2
 
-V0.1 验证跨项目的 `init → /task → /assess → Evidence → Graph → /task` 最小闭环：
+V0.2 验证跨项目的 `init → /task → 可选 /learn → 开发 → /assess → Evidence → Graph → /task` 最小闭环：
 
 - Codex 与 OpenCode 通过同一 Agent Skill 使用系统。
 - 每个业务 Git 项目通过 `ai-dev-grow init` 创建稳定 `project_id`。
 - `/task` 只分析并报告 Gap，不写文件。
+- `/learn` 提供面向当前任务的即时学习，用户可选择跳过；学习不写 Evidence 或 Mastery。
 - `/assess` 把带 `project_id` 的直接 Evidence 和 Skill Mastery 写回中央 ai-dev-grow 仓库。
+- `init` 在业务项目 `AGENTS.md` 中维护一个最小规则区块，引导非简单开发任务进入闭环。
 - Derived Mastery 仅定义数据模型，不实现聚合算法。
-- `/scan`、`/learn` 等其他命令仍为空 stub。
+- `/scan` 仍为空 stub。
 
 ## 跨项目架构
 
@@ -37,6 +42,7 @@ V0.1 验证跨项目的 `init → /task → /assess → Evidence → Graph → /
 ~/.local/bin/ai-dev-grow     -> <ai-dev-grow>/bin/ai-dev-grow
 ~/.config/opencode/commands/task.md   -> <ai-dev-grow>/.opencode/commands/task.md
 ~/.config/opencode/commands/assess.md -> <ai-dev-grow>/.opencode/commands/assess.md
+~/.config/opencode/commands/learn.md  -> <ai-dev-grow>/.opencode/commands/learn.md
 ```
 
 业务项目只保存：
@@ -49,17 +55,29 @@ project_id: "project-a"
 约束：
 
 - 不在业务项目复制 Skill Graph、Evidence 或 Skill 实现。
-- 不自动修改业务项目的 `AGENTS.md`、Codex 配置或 OpenCode 配置。
+- `init` 只追加或更新业务项目 `AGENTS.md` 中带标记的 ai-dev-grow 受管区块，不覆盖已有规则。
+- 不自动修改 Codex 或 OpenCode 主配置。
 - `project_id` 只标识 Evidence 来源，不切分个人 Mastery。
 - 默认从 Git 仓库目录名生成 ID；同名项目使用 `ai-dev-grow init --id <id>` 显式区分。
-- V0.1 只支持串行评估写入，不实现并发锁、服务端或数据库。
+- V0.2 只支持串行评估写入，不实现并发锁、服务端或数据库。
 
 ### 客户端调用
 
 两端均从 `.agents/skills` 发现同一 `SKILL.md`，再通过 `ai-dev-grow resolve` 获取中央数据路径。
 
 - Codex 优先通过自然语言自动触发 Skill，必要时使用 `$ai-dev-grow` 显式调用。Codex 不提供自定义裸 `/task`。
-- OpenCode 通过全局薄适配命令提供 `/task` 和 `/assess`；适配层只转发参数并要求加载共享 Skill，不复制工作流规则。
+- OpenCode 通过全局薄适配命令提供 `/task`、`/learn` 和 `/assess`；适配层只转发参数并要求加载共享 Skill，不复制工作流规则。
+
+### 引导式开发生命周期
+
+初始化项目的受管规则要求非简单开发、Bug 修复和重构在编码前执行 `/task`。Gap 不构成强制门禁：
+
+- 用户选择学习时执行 `/learn`，完成即时学习和理解检查后返回开发；
+- 用户选择跳过时直接开发；
+- `unverified` 提供先 `/assess`、先 `/learn` 或直接开发三种选择；学习不得被解释为 Unknown 等于 L0；
+- 开发和验证完成后只整理 Evidence 候选，经用户确认才执行 `/assess`。
+
+纯解释、只读检查、简单文案或格式调整、Git 状态查询以及用户明确跳过的任务默认不触发。
 
 ## Skill Graph 模型
 
@@ -151,12 +169,20 @@ evidence: []
 - 证据不足时保持 Unknown，不创建 Evidence，也不更新 Graph。
 - Graph 和 Evidence 始终写入中央 ai-dev-grow 仓库，业务项目只保留初始化标记。
 
+## `/learn` 最小规则
+
+- `/learn` 必须绑定一个明确 Skill 和当前真实任务，只覆盖本次交付所需知识。
+- 输出最小知识、任务内应用方式、理解检查和开发交接。
+- 学习是用户选择，不阻塞直接开发。
+- 完成学习不等于获得 Mastery，不创建 Evidence，不更新 Graph。
+- V0.2 不实现课程系统、题库、FSRS 或复杂 Learning Backlog。
+
 ## 未来方向（本期不实现）
 
 - Derived Mastery 聚合算法
 - Pattern Library、Learning Backlog
 - Reference Repo、MindWiki / CodeGraph CodeContextProvider
-- `/scan`、`/learn`
+- `/scan`
 - 技能树可视化
 - 多用户同步、云服务与并发写入
 

@@ -31,6 +31,8 @@ HUB_ROOT="$(cd -P "$(dirname "$SCRIPT_PATH")/.." && pwd)"
 SKILL_SOURCE="$HUB_ROOT/.agents/skills/ai-dev-grow"
 OPENCODE_TASK_SOURCE="$HUB_ROOT/.opencode/commands/task.md"
 OPENCODE_ASSESS_SOURCE="$HUB_ROOT/.opencode/commands/assess.md"
+OPENCODE_LEARN_SOURCE="$HUB_ROOT/.opencode/commands/learn.md"
+MANAGED_RULES_SOURCE="$HUB_ROOT/templates/agents-workflow.md"
 
 usage() {
   cat <<'EOF'
@@ -42,7 +44,7 @@ Usage:
 
 Commands:
   install  Register the shared skill and CLI for the current user.
-  init     Connect a Git repository to the central ai-dev-grow data.
+  init     Connect a Git repository and install its guided workflow rules.
   resolve  Print the current project and central data paths.
   doctor   Check installation, project configuration, and host support.
 EOF
@@ -87,14 +89,17 @@ command_install() {
   [[ -f "$SKILL_SOURCE/SKILL.md" ]] || fail "missing skill source: $SKILL_SOURCE/SKILL.md"
   [[ -f "$OPENCODE_TASK_SOURCE" ]] || fail "missing OpenCode task command: $OPENCODE_TASK_SOURCE"
   [[ -f "$OPENCODE_ASSESS_SOURCE" ]] || fail "missing OpenCode assess command: $OPENCODE_ASSESS_SOURCE"
+  [[ -f "$OPENCODE_LEARN_SOURCE" ]] || fail "missing OpenCode learn command: $OPENCODE_LEARN_SOURCE"
   check_link_target "$SKILL_SOURCE" "$HOME/.agents/skills/ai-dev-grow" "skill"
   check_link_target "$SCRIPT_PATH" "$HOME/.local/bin/ai-dev-grow" "cli"
   check_link_target "$OPENCODE_TASK_SOURCE" "$HOME/.config/opencode/commands/task.md" "OpenCode /task command"
   check_link_target "$OPENCODE_ASSESS_SOURCE" "$HOME/.config/opencode/commands/assess.md" "OpenCode /assess command"
+  check_link_target "$OPENCODE_LEARN_SOURCE" "$HOME/.config/opencode/commands/learn.md" "OpenCode /learn command"
   install_link "$SKILL_SOURCE" "$HOME/.agents/skills/ai-dev-grow" "skill"
   install_link "$SCRIPT_PATH" "$HOME/.local/bin/ai-dev-grow" "cli"
   install_link "$OPENCODE_TASK_SOURCE" "$HOME/.config/opencode/commands/task.md" "OpenCode /task command"
   install_link "$OPENCODE_ASSESS_SOURCE" "$HOME/.config/opencode/commands/assess.md" "OpenCode /assess command"
+  install_link "$OPENCODE_LEARN_SOURCE" "$HOME/.config/opencode/commands/learn.md" "OpenCode /learn command"
   echo "installation complete"
 }
 
@@ -129,6 +134,41 @@ validate_project_config() {
   local config_path="$1"
   [[ "$(read_project_version "$config_path")" = "1" ]] || return 1
   [[ -n "$(read_project_id "$config_path")" ]]
+}
+
+install_managed_rules() {
+  local root="$1"
+  local agents_path="$root/AGENTS.md"
+  local start_marker='<!-- AI_DEV_GROW_START -->'
+  local end_marker='<!-- AI_DEV_GROW_END -->'
+  local has_start=0
+  local has_end=0
+  local temp_file
+
+  [[ -f "$MANAGED_RULES_SOURCE" ]] || fail "missing managed workflow rules: $MANAGED_RULES_SOURCE"
+  if [[ -f "$agents_path" ]]; then
+    grep -Fqx "$start_marker" "$agents_path" && has_start=1
+    grep -Fqx "$end_marker" "$agents_path" && has_end=1
+    [[ "$has_start" -eq "$has_end" ]] || fail "managed workflow block is incomplete: $agents_path"
+  fi
+  temp_file="$(mktemp "$root/.AGENTS.md.XXXXXX")"
+
+  if [[ "$has_start" -eq 1 ]]; then
+    awk -v start="$start_marker" '$0 == start { exit } { print }' "$agents_path" > "$temp_file"
+  elif [[ -f "$agents_path" ]]; then
+    cat "$agents_path" > "$temp_file"
+    printf '\n' >> "$temp_file"
+  fi
+
+  echo "$start_marker" >> "$temp_file"
+  cat "$MANAGED_RULES_SOURCE" >> "$temp_file"
+  echo "$end_marker" >> "$temp_file"
+
+  if [[ "$has_end" -eq 1 ]]; then
+    awk -v end="$end_marker" 'found { print } $0 == end { found = 1 }' "$agents_path" >> "$temp_file"
+  fi
+  mv "$temp_file" "$agents_path"
+  echo "workflow rules installed: $agents_path"
 }
 
 command_init() {
@@ -171,6 +211,7 @@ command_init() {
     validate_project_config "$config_path" || fail "existing config is not recognized: $config_path"
     existing_id="$(read_project_id "$config_path")"
     [[ "$existing_id" = "$project_id" ]] || fail "project already initialized as '$existing_id'; refusing to overwrite with '$project_id'"
+    install_managed_rules "$root"
     echo "already initialized: $root ($existing_id)"
     return
   fi
@@ -182,6 +223,7 @@ command_init() {
     echo "project_id: \"$project_id\""
   } > "$temp_config"
   mv "$temp_config" "$config_path"
+  install_managed_rules "$root"
   echo "initialized: $root ($project_id)"
   echo "config: $config_path"
 }
@@ -201,6 +243,7 @@ resolve_project() {
   echo "graph_path=$HUB_ROOT/skills/graph.yaml"
   echo "task_command_path=$HUB_ROOT/commands/task.md"
   echo "assess_command_path=$HUB_ROOT/commands/assess.md"
+  echo "learn_command_path=$HUB_ROOT/commands/learn.md"
   echo "evidence_dir=$HUB_ROOT/experiences"
 }
 
@@ -214,6 +257,7 @@ command_doctor() {
   same_target "$HOME/.local/bin/ai-dev-grow" "$SCRIPT_PATH" && echo "ok: CLI installed" || { echo "error: CLI is not installed" >&2; failed=1; }
   same_target "$HOME/.config/opencode/commands/task.md" "$OPENCODE_TASK_SOURCE" && echo "ok: OpenCode /task installed" || { echo "error: OpenCode /task is not installed" >&2; failed=1; }
   same_target "$HOME/.config/opencode/commands/assess.md" "$OPENCODE_ASSESS_SOURCE" && echo "ok: OpenCode /assess installed" || { echo "error: OpenCode /assess is not installed" >&2; failed=1; }
+  same_target "$HOME/.config/opencode/commands/learn.md" "$OPENCODE_LEARN_SOURCE" && echo "ok: OpenCode /learn installed" || { echo "error: OpenCode /learn is not installed" >&2; failed=1; }
   command -v codex >/dev/null 2>&1 && echo "ok: Codex available" || echo "warning: Codex not found"
   command -v opencode >/dev/null 2>&1 && echo "ok: OpenCode available" || echo "warning: OpenCode not found"
   if resolve_project "$project_path" >/dev/null 2>&1; then

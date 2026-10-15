@@ -1,6 +1,6 @@
 ---
 name: ai-dev-grow
-description: Analyze real development tasks against a central personal Skill Graph, assess unknown skills with evidence, and reuse mastery across initialized Git projects. Use when the user requests ai-dev-grow task analysis, skill gaps, or skill assessment.
+description: Guide non-trivial development and bug-fix work in initialized Git projects through optional just-in-time learning, evidence-backed assessment, and a central personal Skill Graph. Use for ai-dev-grow task analysis, Skill Gaps, learning, assessment, and when an initialized project's AGENTS.md requires the ai-dev-grow workflow.
 ---
 
 # ai-dev-grow
@@ -11,7 +11,7 @@ Use the central ai-dev-grow repository as the only authority for Skill Mastery a
 
 ## Resolve context
 
-Run `ai-dev-grow resolve` from the current project before either workflow. If it reports that the project is not initialized, tell the user to run `ai-dev-grow init`; do not invent a project identity.
+Run `ai-dev-grow resolve` from the current project before any workflow. If it reports that the project is not initialized, tell the user to run `ai-dev-grow init`; do not invent a project identity.
 
 Use the returned paths instead of assuming where ai-dev-grow is installed.
 
@@ -22,7 +22,17 @@ When the user asks for task analysis or a Skill Gap:
 1. Read `task_command_path` and `graph_path` returned by `resolve`.
 2. Follow the task command exactly.
 3. Treat `project_id` as task provenance only; Mastery remains global.
-4. Do not write Evidence or modify either repository.
+4. Present the user's choices for each Gap. Learning is optional and skipping it must not block development.
+5. Do not write Evidence or modify either repository.
+
+## Learn mode
+
+When the user chooses to learn a Gap or explicitly invokes `/learn`:
+
+1. Read `learn_command_path` and `graph_path` returned by `resolve`.
+2. Follow the learn command exactly and keep the material scoped to the current task.
+3. Return to the development task after the understanding check.
+4. Do not write Evidence, update Mastery, or claim that learning alone proves a level.
 
 ## Assess mode
 
@@ -35,5 +45,17 @@ When the user asks to assess a Skill:
 5. Write the Evidence into `evidence_dir` with the resolved `project_id`, then update the central Graph as specified by the assess command.
 6. Do not update the current business repository except for its existing `.ai-dev-grow/project.yaml`.
 7. Do not calculate Derived Mastery.
+
+## Guided development lifecycle
+
+When the initialized project's `AGENTS.md` requires this workflow for a non-trivial development task, bug fix, or refactor:
+
+1. Run Task mode before coding.
+2. For a Gap, offer Learn or direct development. For an unverified Skill, offer Assess, Learn without assuming a level, or direct development. Respect the user's choice.
+3. Continue the normal project development workflow after that choice.
+4. After implementation and verification, summarize Evidence candidates supported by the delivery.
+5. Run Assess mode only after the user confirms the proposed assessment write.
+
+Do not trigger this lifecycle for read-only explanation, trivial text or formatting changes, Git status queries, or when the user explicitly opts out.
 
 If the host blocks access outside the current repository, report the required central path and let the user grant access. Do not weaken Codex or OpenCode permissions.

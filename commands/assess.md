@@ -62,6 +62,6 @@ evidence:
 ## 边界
 
 - 不实现自动出题系统、复杂评分模型或 Derived Mastery 聚合。
-- 不修改 `/learn`、Learning Backlog 或其他未来模块。
+- 不把完成 `/learn` 本身当作 Evidence；Evidence 必须来自可复核的评估或真实交付表现。
 - 没有足够证据时宁可保持 Unknown，不把 Unknown 写成 L0。
-- V0.1 不处理并发评估；多个项目的 `/assess` 必须串行写入中央 Graph。
+- V0.2 不处理并发评估；多个项目的 `/assess` 必须串行写入中央 Graph。

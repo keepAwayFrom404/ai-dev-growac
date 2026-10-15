@@ -1,7 +1,7 @@
 # /task — Task → Skill Gap
 
 分析当前已初始化项目中的真实开发任务，对照中央 Skill Graph 找出能力 Gap。
-**V0.1 止步于 Gap 报告，不进入开发、不记录 Evidence、不更新 Graph。**
+`/task` 本身只产出 Gap 报告，不记录 Evidence、不更新 Graph；报告完成后由用户选择是否先 `/learn`，随后可以继续真实开发。
 
 ## 输入
 
@@ -30,6 +30,10 @@ Task → Task Understanding → Skill Discovery → Skill Resolution
 6. **Gap Analysis**：按三分类判定（见下）。
 7. **出报告**：按下方模板**仅打印到对话，不落盘**。
    - 报告注明当前 `project_id`，但不创建项目级 Mastery。
+8. **用户选择**：存在 Gap 时明确提供以下两种等价可选路径，不替用户决定：
+   - 先 `/learn <skill-id>`，完成即时学习后开发；
+   - 跳过学习，直接开发。跳过不得阻塞当前任务。
+   对 `unverified` Skill 提供先 `/assess`、先 `/learn` 或直接开发三种选择；选择学习不代表 Unknown 是 L0。
 
 ## Gap 判定（三分类）
 
@@ -66,8 +70,8 @@ Project：<project_id>
 
 ### 下一步
 - Skip → 直接可用
-- Learn → 需学习（后续 /learn）
-- Assess → 通过 `/assess <skill-id>` 评估并记录直接 Evidence
+- Learn → 用户可选：先 `/learn <skill-id>`，或跳过学习直接开发
+- Assess → 用户可选：先 `/assess <skill-id>`、先 `/learn <skill-id>`，或直接开发
 ```
 
 ## 边界
@@ -77,3 +81,4 @@ Project：<project_id>
 - candidate 仅存在于本次报告；只有后续 `/assess` 才能在取得 Evidence 后把它写入 Graph。
 - 不根据子 Skill 临时计算或回写父 Skill 的 Derived Mastery。
 - 不在业务项目中复制 `skills/graph.yaml` 或创建项目级 Mastery。
+- `/task` 不把 Gap 变成强制学习门禁；用户始终可以直接继续开发。
